@@ -73,6 +73,7 @@ function getPriceText(symbol) {
  */
 client.on('ready', () => {
     console.log('I am ready!');
+    client.user.setPresence({ game: { name: 'BlochchainChat.io', type: 0 } });
 });
 
 client.on('message', message => {
@@ -96,6 +97,7 @@ client.on('message', message => {
 });
 
 client.login(config.token);
+
 
 
 /*
