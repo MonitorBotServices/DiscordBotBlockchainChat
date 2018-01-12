@@ -1,10 +1,11 @@
 const Discord = require('discord.js');
-const client = new Discord.Client();
 const config = require('./config.json');
 const request = require('request-json');
 const numeral = require('numeral');
 const coinMarketCap = request.createClient(' https://api.coinmarketcap.com/');
 let coinPrices = [];
+
+let discordClient;
 
 
 process
@@ -71,33 +72,54 @@ function getPriceText(symbol) {
 /**
  * Bot
  */
-client.on('ready', () => {
-    console.log('I am ready!');
-    client.user.setPresence({ game: { name: 'BlochchainChat.io', type: 0 } });
-});
 
-client.on('message', message => {
-    // query ticker with ?
-    if (message.content.startsWith("?")) {
-        const ticker = message.content.slice(1);
-        message.reply(getPriceText(ticker));
+reconnect();
+function reconnect(){
+    discordClient  = new Discord.Client()
+    discordClient.on('ready', () => {
+        console.log('I am ready!');
+        discordClient.user.setPresence({ game: { name: 'BlockchainChat.io', type: 0 } });
+    });
 
-    }
+    discordClient.on('message', message => {
+        // query ticker with ?
+        if (message.content.startsWith("?")) {
+            const ticker = message.content.slice(1);
+            message.reply(getPriceText(ticker));
 
-    // replace binance links
-    if(message.content.includes('binance.com/?ref=') && message.author.username !== 'BlockchainBot'){
-        //replace referral with mine, fuck those guys
-        let edited = message.content.replace(/binance\.com\/\?ref=\d*/g, "binance.com/?ref=13619255");
-        message.delete()
-            .then(msg => console.log(`Deleted message from ${msg.author} for referral link`))
-            .catch(console.error);
+        }
 
-        message.reply(`No referral links!! Next time, you get the ban hammer.\n\nOffending message:\n${edited}`);
-    }
-});
+        // replace binance links
+        if(message.content.includes('binance.com/?ref=') && message.author.username !== 'BlockchainBot'){
+            //replace referral with mine, fuck those guys
+            let edited = message.content.replace(/binance\.com\/\?ref=\d*/g, "binance.com/?ref=13619255");
+            message.delete()
+                .then(msg => console.log(`Deleted message from ${msg.author} for referral link`))
+                .catch(console.error);
 
-client.login(config.token);
+            message.reply(`No referral links!! Next time, you get the ban hammer.\n\nOffending message:\n${edited}`);
+        }
+    });
 
+    discordClient.on('error', err =>{
+        console.log('ERR: ', err);
+        console.log("Reconnecting to Discord in 5 seconds");
+        setTimeout(()=>{
+            reconnect();
+        },5000);
+    });
+
+    discordClient.on('disconnect', disconnect =>{
+        console.log('DISCONNECT: ', disconnect);
+        console.log("Reconnecting to Discord in 5 seconds");
+        setTimeout(()=>{
+            reconnect();
+        },5000);
+    });
+
+    discordClient.login(config.token);
+
+}
 
 
 /*
