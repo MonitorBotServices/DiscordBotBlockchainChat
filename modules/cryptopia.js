@@ -41,7 +41,7 @@ function run(){
 const start = () =>{
     setInterval(()=>{
         run();
-    },10000);
+    },60000 * 5);
     run();
 };
 
