@@ -7,6 +7,8 @@ let coinPrices = [];
 
 let discordClient;
 
+const cryptopia = require('./modules/cryptopia');
+
 
 process
     .on('unhandledRejection', (reason, p) => {
@@ -25,6 +27,7 @@ setInterval(() => {
 }, 60000);
 
 updateCoinPrices();
+cryptopia.start();
 
 function updateCoinPrices() {
     coinMarketCap.get('/v1/ticker/?limit=0', function (err, res, body) {
@@ -79,6 +82,13 @@ function reconnect(){
     discordClient.on('ready', () => {
         console.log('I am ready!');
         discordClient.user.setPresence({ game: { name: 'BlockchainChat.io', type: 0 } });
+
+        // set cryptopia callback
+        cryptopia.newCoinCallback((coin) => {
+            // discordClient.channels.get('398014885197250561').send(`${coin} is now on Cryptopia`); // bot-test
+            discordClient.channels.get('397944017020649473').send(`${coin} is now on Cryptopia`); // trading
+           console.log(`${coin} is now on Cryptopia`);
+        });
     });
 
     discordClient.on('message', message => {
@@ -105,7 +115,10 @@ function reconnect(){
         console.log('ERR: ', err);
         console.log("Reconnecting to Discord in 5 seconds");
         setTimeout(()=>{
-            reconnect();
+            discordClient.logOut((err) => {
+                console.log(err);
+                reconnect();
+            });
         },5000);
     });
 
@@ -113,7 +126,10 @@ function reconnect(){
         console.log('DISCONNECT: ', disconnect);
         console.log("Reconnecting to Discord in 5 seconds");
         setTimeout(()=>{
-            reconnect();
+            discordClient.logOut((err) => {
+                console.log(err);
+                reconnect();
+            });
         },5000);
     });
 
