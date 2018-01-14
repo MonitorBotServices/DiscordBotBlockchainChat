@@ -2,13 +2,25 @@ const Discord = require('discord.js');
 const config = require('./config.json');
 const request = require('request-json');
 const numeral = require('numeral');
+const cryptopia = require('./modules/cryptopia');
+const masternodesOnline = require('./modules/masternodesOnline');
+
 const coinMarketCap = request.createClient(' https://api.coinmarketcap.com/');
 let coinPrices = [];
-
 let discordClient;
 
-const cryptopia = require('./modules/cryptopia');
-
+const channel = {
+    general:'397936074657234947',
+    mining: '397943930466992128',
+    trading: '397944017020649473',
+    adminChat: '397944648401682445',
+    announcements: '397946828240191488',
+    masternodes: '397954164828798976',
+    beginner: '397956644690198528',
+    randomNonCrypto: '397966361160056843',
+    botTest: '398014885197250561',
+    development: '400372496165240844'
+};
 
 process
     .on('unhandledRejection', (reason, p) => {
@@ -28,6 +40,7 @@ setInterval(() => {
 
 updateCoinPrices();
 cryptopia.start();
+masternodesOnline.start();
 
 function updateCoinPrices() {
     coinMarketCap.get('/v1/ticker/?limit=0', function (err, res, body) {
@@ -78,7 +91,7 @@ function getPriceText(symbol) {
 
 reconnect();
 function reconnect(){
-    discordClient  = new Discord.Client()
+    discordClient  = new Discord.Client();
     discordClient.on('ready', () => {
         console.log('I am ready!');
         discordClient.user.setPresence({ game: { name: 'BlockchainChat.io', type: 0 } });
@@ -86,8 +99,14 @@ function reconnect(){
         // set cryptopia callback
         cryptopia.newCoinCallback((coin) => {
             // discordClient.channels.get('398014885197250561').send(`${coin} is now on Cryptopia`); // bot-test
-            discordClient.channels.get('397944017020649473').send(`${coin} is now on Cryptopia`); // trading
+            discordClient.channels.get(channel.trading).send(`${coin} is now on Cryptopia`); // trading
            console.log(`${coin} is now on Cryptopia`);
+        });
+        // set masternodesOnline callback
+        masternodesOnline.newCoinCallback((coin) => {
+            let msg = `https://masternodes.online added a new coin\n\nName: ${coin.coinName}\nPrice: ${coin.price}\nROI: ${coin.ROI}\nNodes: ${coin.nodes}\nRequired: ${coin.required}\nWorth: ${coin.worth}`;
+            discordClient.channels.get(channel.masternodes).send(msg); // trading
+           console.log(msg);
         });
     });
 
