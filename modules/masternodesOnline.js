@@ -34,49 +34,53 @@ function run() {
     console.log('Checking masternodes.online for new coins');
     request('https://masternodes.online/', function (error, response, html) {
         if (!error && response.statusCode == 200) {
-            const $ = cheerio.load(html);
-            cheerioTableparser($);
-            let data = $("#masternodes_table").parsetable(true, false, true);
-            let mnCoins = {};
-            for (let i = 1; i < data[0].length; i++) {
-                mnCoins[data[tbl.coinName][i]] = { // coin name as key
-                    coinName:data[tbl.coinName][i],
-                    price:data[tbl.price][i],
-                    change:data[tbl.change][i],
-                    volume:data[tbl.volume][i],
-                    marketcap:data[tbl.marketcap][i],
-                    ROI:data[tbl.ROI][i],
-                    nodes:data[tbl.nodes][i],
-                    required:data[tbl.required][i],
-                    worth:data[tbl.worth][i],
+            try{
+                const $ = cheerio.load(html);
+                cheerioTableparser($);
+                let data = $("#masternodes_table").parsetable(true, false, true);
+                let mnCoins = {};
+                for (let i = 1; i < data[0].length; i++) {
+                    mnCoins[data[tbl.coinName][i]] = { // coin name as key
+                        coinName:data[tbl.coinName][i],
+                        price:data[tbl.price][i],
+                        change:data[tbl.change][i],
+                        volume:data[tbl.volume][i],
+                        marketcap:data[tbl.marketcap][i],
+                        ROI:data[tbl.ROI][i],
+                        nodes:data[tbl.nodes][i],
+                        required:data[tbl.required][i],
+                        worth:data[tbl.worth][i],
+                    }
                 }
-            }
-            if(lastCoins === null){
+                if(lastCoins === null){
+                    saveListArray(mnCoins);
+                }
+
+                // test add a coin here to trigger
+                // mnCoins['Test Coin (TEST)'] =  {
+                //     coinName: 'Test Coin (TEST)',
+                //     price: '$0.3844',
+                //     change: '-2.48 %',
+                //     volume: '$109,803',
+                //     marketcap: '$6,052,374',
+                //     ROI: '44.70%',
+                //     nodes: '103',
+                //     required: '50,000',
+                //     worth: '$19,218'
+                // };
+
+                // look for changes
+                for(let coin in mnCoins){
+                    if(!lastCoins.includes(coin)){
+                        callback(mnCoins[coin]);
+                    }
+                }
+
+                // save coin list
                 saveListArray(mnCoins);
+            }catch(e) {
+                console.log('ERROR: masternodes.online', e);
             }
-
-            // test add a coin here to trigger
-            // mnCoins['Test Coin (TEST)'] =  {
-            //     coinName: 'Test Coin (TEST)',
-            //     price: '$0.3844',
-            //     change: '-2.48 %',
-            //     volume: '$109,803',
-            //     marketcap: '$6,052,374',
-            //     ROI: '44.70%',
-            //     nodes: '103',
-            //     required: '50,000',
-            //     worth: '$19,218'
-            // };
-
-        // look for changes
-            for(let coin in mnCoins){
-                if(!lastCoins.includes(coin)){
-                    callback(mnCoins[coin]);
-                }
-            }
-
-            // save coin list
-            saveListArray(mnCoins);
         }
     });
 }
