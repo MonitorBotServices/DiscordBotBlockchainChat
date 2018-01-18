@@ -43,11 +43,20 @@ function run(){
             // coins.push('Tiger (TGR)');
 
             // check differences
+            let newCoins = [];
             for(let i in coins){
                 //this is a new coin
                 if(!lastCoins.includes(helpers.normalize(coins[i]))){
-                    callback(coins[i]);
+                    newCoins.push(coins[i]);
                     // console.log('Cryptopia added a new coin - ' + coins[i]);
+                }
+            }
+
+            // only make callback if newcoins is not a huge number
+            let isSmallAdd = newCoins.length < 20;
+            if(isSmallAdd){
+                for(let i = 0; i < newCoins.length; i++){
+                    callback(newCoins[i]);
                 }
             }
 

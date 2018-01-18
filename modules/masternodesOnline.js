@@ -81,9 +81,16 @@ function run() {
                 // };
 
                 // look for changes
+                let newCoins = [];
                 for(let coin in mnCoins){
                     if(!lastCoins.includes(coin)){
-                        callback(mnCoins[coin]);
+                        newCoins.push(mnCoins[coin]);
+                    }
+                }
+                let isSmallAdd = newCoins.length < 20;
+                if(isSmallAdd){
+                    for(let i = 0; i < newCoins.length; i++){
+                        callback(newCoins[i]);
                     }
                 }
 
