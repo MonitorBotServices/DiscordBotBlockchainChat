@@ -1,6 +1,9 @@
+// import {normalize} from "./helpers";
+
 const request = require('request');
 const cheerio = require('cheerio');
 const cheerioTableparser = require('cheerio-tableparser');
+const helpers = require('./helpers');
 
 let lastCoins = null;
 
@@ -23,9 +26,17 @@ let callback = (coin) => {
 };
 
 function saveListArray(obj){
-    let arr = [];
+    let arr;
+    // if is first run
+    if(lastCoins === null){
+        arr = [];
+    } else {
+        arr = lastCoins;
+    }
     for(let coin in obj){
-        arr.push(coin);
+        if(!arr.includes(coin)){
+            arr.push(coin);
+        }
     }
     lastCoins = arr;
 }
@@ -40,7 +51,7 @@ function run() {
                 let data = $("#masternodes_table").parsetable(true, false, true);
                 let mnCoins = {};
                 for (let i = 1; i < data[0].length; i++) {
-                    mnCoins[data[tbl.coinName][i]] = { // coin name as key
+                    mnCoins[helpers.normalize(data[tbl.coinName][i])] = { // normalized coin name as key
                         coinName:data[tbl.coinName][i],
                         price:data[tbl.price][i],
                         change:data[tbl.change][i],
@@ -57,7 +68,7 @@ function run() {
                 }
 
                 // test add a coin here to trigger
-                // mnCoins['Test Coin (TEST)'] =  {
+                // mnCoins[helpers.normalize('Test Coin (TEST)')] =  {
                 //     coinName: 'Test Coin (TEST)',
                 //     price: '$0.3844',
                 //     change: '-2.48 %',
@@ -109,6 +120,6 @@ if (require.main === module) {
     });
     setInterval(()=>{
         run();
-    },60000);
+    },10000);
     run();
 }

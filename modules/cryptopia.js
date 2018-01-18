@@ -1,6 +1,7 @@
 
 const request = require('request-json');
 const cryptopia = request.createClient(' https://www.cryptopia.co.nz/');
+const helpers = require('./helpers');
 
 let lastCoins = null;
 
@@ -8,6 +9,22 @@ let callback = (coin) => {
     console.log('Cryptopia added a new coin - ' + coin);
 };
 
+
+function addCoins(newCoins){
+    let arr;
+    // if is first run
+    if(lastCoins === null){
+        arr = [];
+    } else {
+        arr = lastCoins;
+    }
+    for(let i =0; i < newCoins.length; i++){
+        if(!arr.includes(helpers.normalize(newCoins[i]))){
+            arr.push(helpers.normalize(newCoins[i]));
+        }
+    }
+    lastCoins = arr;
+}
 function run(){
     console.log('Checking Cryptopia for new coins');
     cryptopia.get('api/GetCurrencies', function(err, res, body) {
@@ -19,19 +36,22 @@ function run(){
 
             // first run
             if(lastCoins === null){
-                lastCoins = coins;
+                addCoins(coins);
             }
+
+            // test add coin
+            // coins.push('Tiger (TGR)');
 
             // check differences
             for(let i in coins){
                 //this is a new coin
-                if(!lastCoins.includes(coins[i])){
+                if(!lastCoins.includes(helpers.normalize(coins[i]))){
                     callback(coins[i]);
                     // console.log('Cryptopia added a new coin - ' + coins[i]);
                 }
             }
 
-            lastCoins = coins;
+            addCoins(coins)
         } catch(e) {
             // console.log(e)
         }
@@ -59,6 +79,6 @@ if (require.main === module) {
     });
     setInterval(()=>{
         run();
-    },60000 * 5);
+    },10000);
     run();
 }
